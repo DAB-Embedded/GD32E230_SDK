@@ -37,6 +37,7 @@ OF SUCH DAMAGE.
 #include "systick.h"
 
 volatile static uint32_t delay;
+volatile static uint32_t uwTick;
 
 /*!
     \brief      configure systick
@@ -46,6 +47,8 @@ volatile static uint32_t delay;
 */
 void systick_config(void)
 {
+	uwTick = 0;
+
     /* setup systick timer for 1000Hz interrupts */
     if(SysTick_Config(SystemCoreClock / 1000U)){
         /* capture error */
@@ -81,4 +84,16 @@ void delay_decrement(void)
     if(0U != delay){
         delay--;
     }
+    uwTick++;
+}
+
+/*!
+    \brief      return systick value
+    \param[in]  none
+    \param[out] none
+    \retval     value
+*/
+uint32_t get_systick(void)
+{
+	return uwTick;
 }

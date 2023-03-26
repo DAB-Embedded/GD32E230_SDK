@@ -40,11 +40,8 @@ BUILD_DIR = build
 C_SOURCES =  \
 ../gd32e23x_it.c \
 ../main.c \
-../analog_ctl.c \
-../gpio_ctl.c \
-../video_ctl.c \
 ../systick.c \
-../../Utilities/gd32e230k_bc.c \
+../../Utilities/gd32e230c_eval.c \
 ../../Firmware/GD32E23x_standard_peripheral/Source/gd32e23x_rtc.c \
 ../../Firmware/GD32E23x_standard_peripheral/Source/gd32e23x_dbg.c \
 ../../Firmware/GD32E23x_standard_peripheral/Source/gd32e23x_gpio.c \
@@ -119,7 +116,7 @@ C_INCLUDES =  \
 -I../../Firmware/CMSIS/GD/GD32E23x/Include \
 -I../../Utilities \
 -I../../Firmware/CMSIS \
--I../../Bled_Car \
+-I../../Template \
 -I../../Firmware/CMSIS/GD/GD32E23x/Include \
 -I../../Firmware/CMSIS/GD/GD32E23x/Source/GNU \
 -I../../Firmware/GD32E23x_standard_peripheral/Include

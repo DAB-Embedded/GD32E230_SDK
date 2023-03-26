@@ -36,7 +36,7 @@ OF SUCH DAMAGE.
 #ifndef MAIN_H
 #define MAIN_H
 
-/* led spark function */
-void led_spark(void);
+#define APPLICATION_VERSION_MAJOR       (2)
+#define APPLICATION_VERSION_MINOR       (3)
 
 #endif /* MAIN_H */

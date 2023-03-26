@@ -36,6 +36,7 @@ OF SUCH DAMAGE.
 #include "gd32e23x_it.h"
 #include "main.h"
 #include "systick.h"
+#include "video_ctl.h"
 
 /*!
     \brief      this function handles NMI exception
@@ -88,6 +89,35 @@ void PendSV_Handler(void)
 */
 void SysTick_Handler(void)
 {
-    led_spark();
     delay_decrement();
+}
+
+/*!
+    \brief      this function handles EXTI GPIO 0 and 1 exception
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+void EXTI0_1_IRQHandler(void)
+{
+    if(RESET != exti_interrupt_flag_get(EXTI_0)) {
+        check_button();
+        exti_interrupt_flag_clear(EXTI_0);
+    }
+
+}
+
+/**
+  * @brief  This function handles TIMER2 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIMER2_IRQHandler(void)
+{
+    if(SET == timer_interrupt_flag_get(TIMER2, TIMER_INT_FLAG_UP)){
+        /* clear channel 0 interrupt bit */
+        timer_interrupt_flag_clear(TIMER2, TIMER_INT_FLAG_UP);
+        /* timer event for video controller */
+        video_ctl_timer_event();
+    }
 }
