@@ -10,7 +10,7 @@
 #include "video_ctl.h"
 #include "systick.h"
 
-#define ARRAY_SIZE(x)   			(sizeof(x)/sizeof(x[0]))
+#define ARRAY_SIZE(x)               (sizeof(x)/sizeof(x[0]))
 #define TIM2_PRESCALER              (300)
 #define TIM2_PERIOD                 (550)
 
@@ -28,7 +28,7 @@
 #define VS_CMD_LED_CLR              (0x02)
 #define VS_CMD_LED_CNG              (0x03)
 
-#define AUDIO_BUFFER_SZ				(1024)
+#define AUDIO_BUFFER_SZ             (1024)
 
 const cmd_lamp_s police_light[] = {
   /*                               L06L05L04L03L02L01          */
@@ -352,10 +352,10 @@ void video_setup(const cmd_lamp_s * pseq, size_t array_sz)
 
 void put_dev_into_suspend(void)
 {
-	RTC_BKP0 = current_video;
+    RTC_BKP0 = current_video;
 
     /* Clear all related wakeup flags */
-	pmu_flag_clear(PMU_FLAG_RESET_WAKEUP);
+    pmu_flag_clear(PMU_FLAG_RESET_WAKEUP);
 
     /* Enable wakeup pin WKUP0 */
     pmu_wakeup_pin_enable(PMU_WAKEUP_PIN0);
@@ -402,43 +402,43 @@ void check_timeout_dev(void)
 
 void check_button(void)
 {
-	if ((gpio_get_button_status() != 0) && (button_state == 0))
-	{
-		if ((gpio_get_button_status() != 0) && (button_state == 0))
-		{
-			button_state = 1;
-			button_time = get_systick();
-		}
-	}
+    if ((gpio_get_button_status() != 0) && (button_state == 0))
+    {
+            if ((gpio_get_button_status() != 0) && (button_state == 0))
+            {
+                    button_state = 1;
+                    button_time = get_systick();
+            }
+    }
 
-	if ((gpio_get_button_status() == 0) && (button_state == 1))
-	{
-		if ((gpio_get_button_status() == 0) && (button_state == 1))
-		{
-			button_state = 0;
-			button_time = get_systick() - button_time;
+    if ((gpio_get_button_status() == 0) && (button_state == 1))
+    {
+            if ((gpio_get_button_status() == 0) && (button_state == 1))
+            {
+                    button_state = 0;
+                    button_time = get_systick() - button_time;
 
-			clear_timeout_dev();
+                    clear_timeout_dev();
 
-			if (button_time > BTN_TIME_MENU)
-			{
-				/* Menu mode */
-			} else
-			if (button_time > BTN_TIME_SLEEP)
-			{
-				put_dev_into_suspend();
-			} else
-			if (button_time < BTN_TIME_CHANGE_VIDEO)
-			{
-				current_video++;
-				if (current_video >= movies_sz)
-				{
-					current_video = 0;
-				}
-				video_setup(movies[current_video].video, movies[current_video].video_sz);
-			}
-		}
-	}
+                    if (button_time > BTN_TIME_MENU)
+                    {
+                            /* Menu mode */
+                    } else
+                    if (button_time > BTN_TIME_SLEEP)
+                    {
+                            put_dev_into_suspend();
+                    } else
+                    if (button_time < BTN_TIME_CHANGE_VIDEO)
+                    {
+                            current_video++;
+                            if (current_video >= movies_sz)
+                            {
+                                    current_video = 0;
+                            }
+                            video_setup(movies[current_video].video, movies[current_video].video_sz);
+                    }
+            }
+    }
 }
 
 void video_ctl_timer_event(void)
@@ -447,74 +447,74 @@ void video_ctl_timer_event(void)
     cmd_lamp_s * pseq = (cmd_lamp_s *)g_pseq;
     size_t j = 0;
 
-	if (pseq[array_index_ptr].cmd == VS_CMD_LED_CNG)
-	{
-		for (j = 0; j < LEDS_RGB_TOTAL; j++)
-		{
-			if (pseq[array_index_ptr].value & (1 << j))
-				GPIO_BC(lamps_flat[j].port) = (uint32_t)lamps_flat[j].pin;
-			else
-				GPIO_BOP(lamps_flat[j].port) = (uint32_t)lamps_flat[j].pin;
-		}
-	}
+        if (pseq[array_index_ptr].cmd == VS_CMD_LED_CNG)
+        {
+                for (j = 0; j < LEDS_RGB_TOTAL; j++)
+                {
+                        if (pseq[array_index_ptr].value & (1 << j))
+                                GPIO_BC(lamps_flat[j].port) = (uint32_t)lamps_flat[j].pin;
+                        else
+                                GPIO_BOP(lamps_flat[j].port) = (uint32_t)lamps_flat[j].pin;
+                }
+        }
 
-	if (++array_index_ptr >= az)
-	{
-		array_index_ptr = 0;
-	}
+        if (++array_index_ptr >= az)
+        {
+                array_index_ptr = 0;
+        }
 
-	check_timeout_dev();
+        check_timeout_dev();
 }
 
 void video_audio_handler(void)
 {
-	uint16_t max_audio = 0, current_sig, avg_avalue = 0, ampl = 0;
-	uint32_t acc_val = 0;
+    uint16_t max_audio = 0, current_sig, avg_avalue = 0, ampl = 0;
+    uint32_t acc_val = 0;
 
-  	audio_buf[audio_ptr++] = current_sig = analog_ctl_get_adc_mic();
-	acc_val += current_sig;
-	if (max_audio < current_sig) max_audio = current_sig;
+    audio_buf[audio_ptr++] = current_sig = analog_ctl_get_adc_mic();
+    acc_val += current_sig;
+    if (max_audio < current_sig) max_audio = current_sig;
 
-	if (audio_ptr >= AUDIO_BUFFER_SZ) {
-		audio_ptr = 0;
-		avg_avalue = acc_val / AUDIO_BUFFER_SZ;
-		ampl = max_audio - avg_avalue;
-		if (ampl > 15)
-		{
-			gpio_lamp_control(0, 0, 1, 0);
-			gpio_lamp_control(1, 0, 1, 0);
-			gpio_lamp_control(2, 0, 1, 0);
-		} else
-			if (ampl > 10)
-			{
-				gpio_lamp_control(0, 0, 1, 0);
-				gpio_lamp_control(1, 0, 1, 0);
-				gpio_lamp_control(2, 0, 0, 0);
-			} else
-				if (ampl > 5)
-				{
-					gpio_lamp_control(0, 0, 1, 0);
-					gpio_lamp_control(1, 0, 0, 0);
-					gpio_lamp_control(2, 0, 0, 0);
-				} else {
-					gpio_lamp_control(0, 0, 0, 0);
-					gpio_lamp_control(1, 0, 0, 0);
-					gpio_lamp_control(2, 0, 0, 0);
-				}
+    if (audio_ptr >= AUDIO_BUFFER_SZ) {
+            audio_ptr = 0;
+            avg_avalue = acc_val / AUDIO_BUFFER_SZ;
+            ampl = max_audio - avg_avalue;
+            if (ampl > 15)
+            {
+                    gpio_lamp_control(0, 0, 1, 0);
+                    gpio_lamp_control(1, 0, 1, 0);
+                    gpio_lamp_control(2, 0, 1, 0);
+            } else
+                    if (ampl > 10)
+                    {
+                            gpio_lamp_control(0, 0, 1, 0);
+                            gpio_lamp_control(1, 0, 1, 0);
+                            gpio_lamp_control(2, 0, 0, 0);
+                    } else
+                            if (ampl > 5)
+                            {
+                                    gpio_lamp_control(0, 0, 1, 0);
+                                    gpio_lamp_control(1, 0, 0, 0);
+                                    gpio_lamp_control(2, 0, 0, 0);
+                            } else {
+                                    gpio_lamp_control(0, 0, 0, 0);
+                                    gpio_lamp_control(1, 0, 0, 0);
+                                    gpio_lamp_control(2, 0, 0, 0);
+                            }
 
-		max_audio = 0;
-		acc_val = 0;
-	}
+            max_audio = 0;
+            acc_val = 0;
+    }
 }
 
 void bs_entry(void)
 {
-	/* Allow bkp registers access */
-	pmu_backup_write_enable();
-	/* Start video timer */
-	video_init();
-	/* Enable microphone */
-	//gpio_mic_en(1);
+    /* Allow bkp registers access */
+    pmu_backup_write_enable();
+    /* Start video timer */
+    video_init();
+    /* Enable microphone */
+    //gpio_mic_en(1);
 
     button_state    = 0;
     array_index_ptr = 0;
